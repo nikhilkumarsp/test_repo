@@ -1,0 +1,48 @@
+name: Wasp (Semgrep) - SAST Check
+
+on:
+  pull_request_target:
+    branches:
+      - 'prestaging'
+  schedule:
+    - cron: '0 */24 * * *' # Run everyday at 12 AM UTC
+  workflow_dispatch: # Run on demand
+
+jobs:
+  wasp-scan:
+    name: Wasp scan
+    runs-on:
+      group: security-lrg
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Running Wasp scan
+        uses: freshactions/wasp@latest
+        env:
+          WASP_LOG_LEVEL: DEBUG
+          WASP_SAVE_JSON: true
+          WASP_SAVE_HTML: true
+          WASP_SAVE_CSV: true
+          WASP_FRESHRELEASE_PR_PROJECT_KEY: "FS"
+          WASP_DRY_RUN: ${{ vars.SECURITY_APPSEC_WASP_DRY_RUN }}
+          WASP_EXCLUDE: ${{ vars.SECURITY_APPSEC_WASP_EXCLUDE }}
+
+          WASP_FRESHRELEASE_URL: ${{ vars.SECURITY_APPSEC_FRESHRELEASE_URL }}
+          WASP_FRESHRELEASE_PR_ISSUE_TYPE: ${{ vars.SECURITY_APPSEC_FRESHRELEASE_PR_ISSUE_TYPE }}          
+
+          WASP_TOKEN: ${{ secrets.SECURITY_APPSEC_WASP_TOKEN }}
+          WASP_FRESHRELEASE_TOKEN: ${{ secrets.SECURITY_APPSEC_FRESHRELEASE_TOKEN }}
+          WASP_SLACK_TOKEN: ${{ secrets.SECURITY_APPSEC_SLACK_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SECURITY_APPSEC_GH_TOKEN }}
+
+      # Use this step to upload the scan report as an artifact.
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Wasp scan report archive
+          retention-days: ${{ vars.SECURITY_ARTIFACT_RETENTION_DAYS }}
+          path: |
+            wasp-report.csv
+            wasp-report.json
+            wasp-report.html
