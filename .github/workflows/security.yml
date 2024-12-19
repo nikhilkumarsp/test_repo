@@ -2,8 +2,7 @@ name: Wasp (Semgrep) - SAST Check
 
 on:
   pull_request_target:
-    branches:
-      - 'prestaging'
+
   schedule:
     - cron: '0 */24 * * *' # Run everyday at 12 AM UTC
   workflow_dispatch: # Run on demand
@@ -13,6 +12,7 @@ jobs:
     name: Wasp scan
     runs-on:
       group: security-lrg
+
     steps:
       - name: Repository checkout
         uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
           WASP_SAVE_JSON: true
           WASP_SAVE_HTML: true
           WASP_SAVE_CSV: true
-          WASP_FRESHRELEASE_PR_PROJECT_KEY: "FS"
+          WASP_FRESHRELEASE_PR_PROJECT_KEY: FS 
           WASP_DRY_RUN: ${{ vars.SECURITY_APPSEC_WASP_DRY_RUN }}
           WASP_EXCLUDE: ${{ vars.SECURITY_APPSEC_WASP_EXCLUDE }}
 
@@ -37,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SECURITY_APPSEC_GH_TOKEN }}
 
       # Use this step to upload the scan report as an artifact.
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Wasp scan report archive
@@ -46,3 +46,4 @@ jobs:
             wasp-report.csv
             wasp-report.json
             wasp-report.html
+          
